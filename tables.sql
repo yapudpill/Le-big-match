@@ -1,10 +1,11 @@
 -- DROP --
-drop table if exists region, departement, ville, lieu, utilisateur, cherche,
-    avis, interet, centre_interet, evenement_futur, evenement_passe,
-    evenement_annule, reponse, presence, tag, tag_utilisateur, tag_lieu,
-    tag_evenement_futur, tag_evenement_passe, tag_evenement_annule;
+drop table if exists
+    region, departement, ville,
+    lieu,
+    utilisateur, cherche, avis, interet, centre_interet,
+    evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence,
+    tag, tag_utilisateur, tag_lieu, tag_evenement;
 drop type if exists genre_t, orientation_t, avis_t, reponse_t;
-drop sequence if exists evenement_seq;
 
 -- TYPES --
 create type genre_t as enum ('homme', 'femme', 'autre');
@@ -108,12 +109,9 @@ create table centre_interet (
 );
 
 -- ÉVÈNEMENTS --
-create sequence evenement_seq;
-
--- Colonnes communes aux tables d'évènements
 create table evenement (
     -- Interne appli
-    id               int primary key default nextval('evenement_seq'),
+    id               serial primary key,
     date_publication timestamp not null default current_timestamp,
 
     -- Infos évènement
@@ -132,21 +130,21 @@ create table evenement (
 );
 
 -- Condition externe : on suppose qu'un script passe régulièrement pour déplacer
--- les évènements dans la bonne table
+-- les évènements dans la bonne table, tous les évènements doivent être dans une
+-- et une seule table
 create table evenement_futur (
-    like evenement including all,
-    places_restantes int,
-    check (0 <= places_restantes and places_restantes <= nb_places)
+    id               int primary key references evenement(id),
+    places_restantes int check (places_restantes >= 0)
 );
 
-create table evenement_passe (like evenement including all);
+create table evenement_termine (
+    id int primary key references evenement(id)
+);
 
 create table evenement_annule (
-    like evenement including all,
+    id     int primary key references evenement(id),
     raison text
 );
-
-drop table evenement;
 
 create table reponse (
     utilisateur  text references utilisateur(id),
@@ -157,7 +155,7 @@ create table reponse (
 
 create table presence (
     utilisateur text references utilisateur(id),
-    evenement   int references evenement_passe(id),
+    evenement   int references evenement_termine(id),
     note        int check (0 <= note and note <= 10),
     primary key (utilisateur, evenement)
 );
@@ -165,17 +163,26 @@ create table presence (
 -- TAGS --
 create table tag (
     id          serial primary key,
+    mot         text unique,
+    utilisateur text unique references utilisateur(id),
+    lieu        text unique references lieu(id),
+    -- On aimerai spécifier `nulls not distinct` après chaque `unique` mais
+    -- c'est disponible qu'à partir de postgres 15 et nivose utilise postgres 13
+
+    -- Exactement 2 des 3 champs sont null
+    check ((mot is null)::int + (utilisateur is null)::int + (lieu is null)::int = 2)
+);
+
+/* Pour les version de postgresql >= 15, replacer la définition du dessus par :
+create table tag (
+    id          serial primary key,
     mot         text,
     utilisateur text references utilisateur(id),
     lieu        text references lieu(id),
-
-    -- Exactement 2 champs sont null
     check ((mot is null)::int + (utilisateur is null)::int + (lieu is null)::int = 2),
-
-    -- On aimerai spécifier `nulls not distinct` mais c'est disponible qu'à
-    -- partir de postgresql 15 et nivose utilise postgresql 13
-    unique (mot, utilisateur, lieu)
+    unique nulls not distinct (mot, utilisateur, lieu)
 );
+*/
 
 create table tag_utilisateur (
     utilisateur text references utilisateur(id),
@@ -189,20 +196,8 @@ create table tag_lieu (
     primary key (lieu, tag)
 );
 
-create table tag_evenement_futur (
-    evenement int references evenement_futur(id),
-    tag       int references tag(id),
-    primary key (evenement, tag)
-);
-
-create table tag_evenement_passe (
-    evenement int references evenement_passe(id),
-    tag       int references tag(id),
-    primary key (evenement, tag)
-);
-
-create table tag_evenement_annule (
-    evenement int references evenement_annule(id),
+create table tag_evenement (
+    evenement int references evenement(id),
     tag       int references tag(id),
     primary key (evenement, tag)
 );
