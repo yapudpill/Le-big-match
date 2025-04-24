@@ -13,7 +13,7 @@ create type orientation_t as enum ('hetero', 'homo', 'bi', 'autre');
 create type avis_t as enum ('like', 'nope');
 create type reponse_t as enum ('interesse', 'participe', 'pas interesse');
 
--- GÉOGRAPHIE (données de l'INSEE) --
+-- GÉOGRAPHIE --
 create table region (
     code char(2) primary key,
     nom  text not null
