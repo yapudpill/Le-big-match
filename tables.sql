@@ -1,10 +1,9 @@
 -- DROP --
 drop table if exists
     region, departement, ville,
-    lieu,
-    utilisateur, cherche, avis, interet, centre_interet,
-    evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence,
-    tag, tag_utilisateur, tag_lieu, tag_evenement;
+    lieu, tag_lieu,
+    utilisateur, cherche, avis, tag_utilisateur, tag_utilisateur,
+    evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence, tag_evenement;
 drop type if exists genre_t, orientation_t, avis_t, reponse_t;
 
 -- TYPES --
@@ -41,7 +40,13 @@ create table lieu (
     ouverture   time,
     fermeture   time,
     type_lieu   text
-    -- affluence_moyenne quel type ?
+);
+
+create table tag_lieu (
+    lieu   text references lieu(id),
+    tag    text,
+    source text not null,
+    primary key (lieu, tag)
 );
 
 -- UTILISATEURS --
@@ -83,29 +88,15 @@ create table avis (
     destination text references utilisateur(id),
     type_avis   avis_t not null,
     date_avis   timestamp not null default current_timestamp,
+    check (source <> destination),
     primary key (source, destination)
 );
 
-create table interet (
-    categorie            text,
-    sous_categorie       text,
-    nom                  text,
-    nombre_interesses    int check (nombre_interesses >= 0),
-    createur_participant text, -- Peut-être trouver un autre nom ?
-    lieu                 text references lieu(id),
-    primary key (categorie, nom, createur_participant)
-);
-
-create table centre_interet (
-    utilisateur          text references utilisateur(id),
-    categorie            text,
-    nom                  text,
-    createur_participant text,
-    rapport              text,
-    frequence            interval,
-    source               text,
-    primary key (utilisateur, categorie, nom, createur_participant, rapport),
-    foreign key (categorie, nom, createur_participant) references interet
+create table tag_utilisateur (
+    utilisateur text references utilisateur(id),
+    tag         text,
+    source      text not null,
+    primary key (utilisateur, tag)
 );
 
 -- ÉVÈNEMENTS --
@@ -120,13 +111,7 @@ create table evenement (
     lieu_rdv     text references lieu(id),
     description  text,
     prix         int check (prix >= 0), -- centimes
-    nb_places    int check (nb_places > 0),
-
-    -- Centre d'intérêt lié
-    categorie            text,
-    nom                  text,
-    createur_participant text,
-    foreign key (categorie, nom, createur_participant) references interet
+    nb_places    int check (nb_places > 0)
 );
 
 -- Condition externe : on suppose qu'un script passe régulièrement pour déplacer
@@ -160,44 +145,9 @@ create table presence (
     primary key (utilisateur, evenement)
 );
 
--- TAGS --
-create table tag (
-    id          serial primary key,
-    mot         text unique,
-    utilisateur text unique references utilisateur(id),
-    lieu        text unique references lieu(id),
-    -- On aimerai spécifier `nulls not distinct` après chaque `unique` mais
-    -- c'est disponible qu'à partir de postgres 15 et nivose utilise postgres 13
-
-    -- Exactement 2 des 3 champs sont null
-    check ((mot is null)::int + (utilisateur is null)::int + (lieu is null)::int = 2)
-);
-
-/* Pour les version de postgresql >= 15, replacer la définition du dessus par :
-create table tag (
-    id          serial primary key,
-    mot         text,
-    utilisateur text references utilisateur(id),
-    lieu        text references lieu(id),
-    check ((mot is null)::int + (utilisateur is null)::int + (lieu is null)::int = 2),
-    unique nulls not distinct (mot, utilisateur, lieu)
-);
-*/
-
-create table tag_utilisateur (
-    utilisateur text references utilisateur(id),
-    tag         int references tag(id),
-    primary key (utilisateur, tag)
-);
-
-create table tag_lieu (
-    lieu text references lieu(id),
-    tag  int references tag(id),
-    primary key (lieu, tag)
-);
-
 create table tag_evenement (
     evenement int references evenement(id),
-    tag       int references tag(id),
+    tag       text,
+    source    text not null,
     primary key (evenement, tag)
 );
