@@ -1,14 +1,15 @@
 -- DROP --
+drop view if exists util_desc;
 drop table if exists
     region, departement, ville,
     lieu, tag_lieu,
-    utilisateur, cherche, avis, tag_utilisateur, tag_utilisateur,
+    utilisateur, description, cherche, avis, tag_utilisateur, tag_utilisateur,
     evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence, tag_evenement;
-drop type if exists genre_t, orientation_t, avis_t, reponse_t;
+drop type if exists genre_t, pref_t, avis_t, reponse_t;
 
 -- TYPES --
 create type genre_t as enum ('homme', 'femme', 'autre');
-create type orientation_t as enum ('hetero', 'homo', 'bi', 'autre');
+create type pref_t as enum ('homme', 'femme', 'tout');
 create type avis_t as enum ('like', 'nope');
 create type reponse_t as enum ('interesse', 'participe', 'pas interesse');
 
@@ -61,21 +62,26 @@ create table utilisateur (
 
     -- Interne appli
     abonne      boolean not null,
-    inscription timestamp not null default current_timestamp,
+    inscription timestamp not null default current_timestamp
+);
 
-    -- Description
+create table description (
+    id              text primary key references utilisateur(id),
     genre           genre_t,
-    orientation     orientation_t,
+    pref            pref_t,
     couleur_cheveux text,
     couleur_yeux    text,
     poids           int check (poids > 0), -- kg
     taille          int check (taille > 0) -- cm
 );
 
+create view util_desc as
+    select * from utilisateur left join description using (id);
+
 create table cherche (
     chercheur       text not null references utilisateur(id),
     genre           genre_t,
-    orientation     orientation_t,
+    pref            pref_t,
     couleur_cheveux text,
     couleur_yeux    text,
     poids           int check (poids > 0),

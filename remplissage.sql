@@ -50,3 +50,40 @@ insert into ville (code, nom, departement)
     select com, libelle, dep from tmp_ville where typecom = 'COM';
 
 drop table tmp_ville;
+
+-- UTILISATEURS --
+create temporary table tmp_util (
+    id text,
+    nom text,
+    prenom text,
+    naissance date,
+    bio text,
+    ville char(5),
+    abonne boolean,
+    inscription date
+);
+
+\copy tmp_util from 'data/utilisateur.csv' with (format csv, header true)
+insert into utilisateur (id, nom, prenom, naissance, bio, ville, abonne, inscription)
+    select id, nom, prenom, naissance, bio, ville, abonne, inscription
+    from tmp_util;
+
+drop table tmp_util;
+
+create temporary table tmp_desc (
+    id text,
+    genre genre_t,
+    pref pref_t,
+    couleur_cheveux text,
+    couleur_yeux text,
+    poids int,
+    taille int
+);
+
+\copy tmp_desc from 'data/description.csv' with (format csv, header true)
+
+insert into description (id, genre, pref, couleur_cheveux, couleur_yeux, poids, taille)
+    select id, genre, pref, couleur_cheveux, couleur_yeux, poids, taille
+    from tmp_desc;
+
+drop table tmp_desc;
