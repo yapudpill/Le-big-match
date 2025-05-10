@@ -112,6 +112,7 @@ create table evenement (
     date_publication timestamp not null default current_timestamp,
 
     -- Infos évènement
+    nom          text not null check (nom <> ''),
     organisateur text not null references utilisateur(id),
     date_rdv     timestamp not null,
     lieu_rdv     text references lieu(id),
