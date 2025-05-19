@@ -80,8 +80,6 @@ create view util_desc as
 
 create table cherche (
     chercheur       text not null references utilisateur(id),
-    genre           genre_t,
-    pref            pref_t,
     couleur_cheveux text,
     couleur_yeux    text,
     poids           int check (poids > 0),

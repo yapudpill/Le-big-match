@@ -58,11 +58,34 @@ where u.id = :'util' and l.id not in (
 
 \unset util
 
--- TODO: sous requête dans le FROM
+-- Score de proximité d'une ville donnée avec toutes les autres
+\set ville_id '92002'
+
+select ville.nom, ville.code,
+  case
+    when ville.code = ville_ref.code then 1
+    when departement.code = ville_ref.dep then 0.75
+    when region.code = ville_ref.reg then 0.25
+    else 0
+  end as proximite
+from
+  (select ville.code as code, departement.code as dep, region.code as reg
+    from
+      ville
+      join departement on ville.departement = departement.code
+      join region on departement.region = region.code
+    where ville.code = :'ville_id'
+  ) as ville_ref,
+  ville
+  join departement on ville.departement = departement.code
+  join region on departement.region = region.code;
+
+\unset ville_id
 
 -- Les utilisateurs ayant assisté à tous les évènements sur Paris depuis un mois
 -- Autrement dit les utilisateurs pour lesquels ils n'existe pas d'évènement sur
 --   Paris de moins d'un mois auquel il n'a pas assisté
+-- TODO: je pense pas qu'elle marche, à refaire
 select id, nom, prenom
 from utilisateur u
 where id not in (
