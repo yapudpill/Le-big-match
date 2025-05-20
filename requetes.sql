@@ -113,8 +113,23 @@ where not exists (
   where p.utilisateur = u.id
 );
 
--- TODO: 2 agrégats
+-- agrégats
 
--- Les utilisateurs qui ont moins aimé que la moyenne 4 évènements
+-- Les utilisateurs qui ont moins aimé que la moyenne, 4 évènements
+
+with utilisateurs_ayant_moins_aime_que_moyenne as (
+      select utilisateur
+      from presence
+      where note < (select avg(note) from presence where note is not null)
+      group by utilisateur
+      having count(*) >= 4
+  )
+select u.id
+from utilisateur u
+join utilisateurs_ayant_moins_aime_que_moyenne ua
+    on u.id = ua.utilisateur;
 
 -- Le(s) lieu(x) qui ouvre(nt) le plus tôt
+
+
+
