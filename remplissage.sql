@@ -81,9 +81,22 @@ create temporary table tmp_desc (
 );
 
 \copy tmp_desc from 'data/description.csv' with (format csv, header true)
-
 insert into description (id, genre, pref, couleur_cheveux, couleur_yeux, poids, taille)
     select id, genre, pref, couleur_cheveux, couleur_yeux, poids, taille
     from tmp_desc;
 
 drop table tmp_desc;
+
+create temporary table tmp_avis (
+    source text,
+    destination text,
+    type_avis avis_t,
+    date_avis date
+);
+
+\copy tmp_avis from 'data/avis.csv' with (format csv, header true)
+insert into avis (source, destination, type_avis, date_avis)
+    select source, destination, type_avis, date_avis
+    from tmp_avis;
+
+drop table tmp_avis;
