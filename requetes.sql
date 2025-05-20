@@ -85,19 +85,32 @@ from
 -- Les utilisateurs ayant assisté à tous les évènements sur Paris depuis un mois
 -- Autrement dit les utilisateurs pour lesquels ils n'existe pas d'évènement sur
 --   Paris de moins d'un mois auquel il n'a pas assisté
--- TODO: je pense pas qu'elle marche, à refaire
-select id, nom, prenom
+
+-- Celle-ci est rapide...
+select u.id
 from utilisateur u
-where id not in (
-  select utilisateur
+where not exists (
+  select 1
   from
-    presence p
-    join evenement_termine et on et.id = p.evenement
-    join evenement e on e.id = et.id
-    join lieu l on l.id = e.lieu_rdv
-    join ville v on v.code = l.ville
-  where age(e.date_rdv) < interval '1 month'
-  and v.nom = 'Paris'
+    evenement e
+    join ville v on v.code = e.lieu_rdv
+  where v.nom = 'Paris' and age(e.date_rdv) < interval '1 month'
+  and (e.id, u.id) not in (select evenement, utilisateur from presence)
+);
+
+-- ...et celle-là fait la même chose plus lentement
+select u.id
+from utilisateur u
+where not exists (
+  select e.id
+  from
+    evenement e
+    join ville v on v.code = e.lieu_rdv
+  where v.nom = 'Paris' and age(e.date_rdv) < interval '1 month'
+  except
+  select p.evenement
+  from presence p
+  where p.utilisateur = u.id
 );
 
 -- TODO: 2 agrégats
