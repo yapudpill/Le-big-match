@@ -49,7 +49,7 @@ with prefs as (
 )
 select
     a.id,max(
-        0.5   * score_ecart((extract(year from age(current_date, u.naissance)) - p.age)::int, 5) +
+        0.5   * score_ecart((((current_date - u.naissance) / 365.25)::int - p.age), 5) +
         0.125 * score_ecart((a.taille - p.taille), 20) +
         0.125 * score_ecart((a.poids - p.poids), 20) +
         0.125 * case when a.couleur_cheveux = p.couleur_cheveux then 1 else 0 end +
