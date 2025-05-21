@@ -27,4 +27,41 @@ select u.id, (
 )
 from utilisateur u;
 
+
+-- Scores de Critère
+
+
+--0.5 * score age + 0.125 * score taille + 0.125 * score poids + 0.125 * score cheveux + 0.125 * score yeux
+
+--score age -> score_ecart (notre_age - age_recommandation,5)
+--score taille -> score_ecart (notre_taille - taille_recommandation,20)
+--score poids -> score_ecart (notre_poids - poids_recommandation,20)
+
+
+with prefs as (
+    select *
+    from cherche
+    where chercheur = :'util'
+), autres as (
+    select *
+    from description
+    where id <> :'util'
+)
+select
+    a.id,max(
+        0.5   * score_ecart((extract(year from age(current_date, u.naissance)) - p.age)::int, 5) +
+        0.125 * score_ecart((a.taille - p.taille), 20) +
+        0.125 * score_ecart((a.poids - p.poids), 20) +
+        0.125 * case when a.couleur_cheveux = p.couleur_cheveux then 1 else 0 end +
+        0.125 * case when a.couleur_yeux = p.couleur_yeux then 1 else 0 end)
+     as score
+from autres a, utilisateur u, prefs p
+where u.id = a.id
+group by a.id;
+
+
+
+
+
+
 \unset util

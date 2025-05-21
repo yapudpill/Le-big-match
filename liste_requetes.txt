@@ -22,6 +22,7 @@ CRITERE
 
 - une requete qui donne la valeur pour le critère par rapport
 
+
 - une requete pour tag OK
 
 - une requete pour evenement

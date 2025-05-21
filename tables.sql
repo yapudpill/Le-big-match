@@ -79,6 +79,7 @@ create view util_desc as
     select * from utilisateur left join description using (id);
 
 create table cherche (
+    id serial primary key
     chercheur       text not null references utilisateur(id),
     couleur_cheveux text,
     couleur_yeux    text,
