@@ -20,7 +20,18 @@ from
   and (u1.pref is null or u1.pref::text in ('tout', u2.genre::text))
   and (u2.pref is null or u2.pref::text in ('tout', u1.genre::text));
 
+-- Les matchs effectifs
+select source, destination
+from avis
+where type_avis = 'like'
+and (destination, source) in (
+  select source, destination
+  from avis
+  where type_avis = 'like'
+);
+
 -- Les lieux dans la ville d'un utilisateur où aucun évènement n'est prévu
+-- (3 prochaines requêtes)
 \set util 'robinm'
 
 -- Renvoie ce que l'on veut
@@ -85,6 +96,7 @@ from
 -- Les utilisateurs ayant assisté à tous les évènements sur Paris depuis un mois
 -- Autrement dit les utilisateurs pour lesquels ils n'existe pas d'évènement sur
 --   Paris de moins d'un mois auquel il n'a pas assisté
+-- (2 prochaines requêtes)
 
 -- Celle-ci est rapide...
 select u.id
@@ -113,8 +125,6 @@ where not exists (
   where p.utilisateur = u.id
 );
 
--- agrégats
-
 -- Les utilisateurs qui ont moins aimé que la moyenne, 4 évènements
 select utilisateur
 from presence p1
@@ -133,3 +143,15 @@ from (
   from lieu
 ) t
 where rank = 1;
+
+-- Pour chaque mois de 2025, l'utilisateur le plus nopé
+with nb_nopes as (
+  select destination, extract(month from date_avis) as mois, count(*) as nopes
+  from avis
+  where type_avis = 'nope' and extract(year from date_avis) = 2025
+  group by destination, mois
+)
+select *
+from nb_nopes n1
+where nopes = (select max(nopes) from nb_nopes n2 where n1.mois = n2.mois)
+order by mois;
