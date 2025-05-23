@@ -56,7 +56,7 @@ create table utilisateur (
     id        text primary key check (id <> ''),
     nom       text not null check (nom <> ''),
     prenom    text not null check (prenom <> ''),
-    naissance date not null check (current_date >= naissance + interval '18 years'),
+    naissance date not null check (age(naissance) >= interval '18 years'),
     bio       text,
     ville     char(5) references ville(code),
 
@@ -79,7 +79,7 @@ create view util_desc as
     select * from utilisateur left join description using (id);
 
 create table cherche (
-    id serial primary key
+    id              serial primary key,
     chercheur       text not null references utilisateur(id),
     couleur_cheveux text,
     couleur_yeux    text,
@@ -88,6 +88,7 @@ create table cherche (
     age             int check (age >= 18)
 );
 
+-- Contrainte externe : un avis n'est modifiable que ssi l'utilisateur est abonné
 create table avis (
     source      text references utilisateur(id),
     destination text references utilisateur(id),
@@ -109,6 +110,7 @@ create table evenement (
     -- Interne appli
     id               serial primary key,
     date_publication timestamp not null default current_timestamp,
+    source           text not null,
 
     -- Infos évènement
     nom          text not null check (nom <> ''),
