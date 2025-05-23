@@ -94,9 +94,7 @@ from
 \unset ville_id
 
 -- Les utilisateurs ayant assisté à tous les évènements sur Paris depuis un mois
--- Autrement dit les utilisateurs pour lesquels ils n'existe pas d'évènement sur
---   Paris de moins d'un mois auquel il n'a pas assisté
--- (2 prochaines requêtes)
+-- (3 prochaines requêtes)
 
 -- Celle-ci est rapide...
 select u.id
@@ -110,7 +108,7 @@ where not exists (
   and (e.id, u.id) not in (select evenement, utilisateur from presence)
 );
 
--- ...et celle-là fait la même chose plus lentement
+-- ...et celle-là fait la même chose plus lentement...
 select u.id
 from utilisateur u
 where not exists (
@@ -124,6 +122,19 @@ where not exists (
   from presence p
   where p.utilisateur = u.id
 );
+
+-- ...et maintenant avec de l'agrégation
+with evenement_paris as (
+  select e.id as evenement
+  from
+    evenement e
+    join ville v on v.code = e.lieu_rdv
+  where v.nom = 'Paris' and age(e.date_rdv) < interval '1 month'
+)
+select utilisateur
+from presence natural join evenement_paris
+group by utilisateur
+having count(*) = (select count(*) from evenement_paris);
 
 -- Les utilisateurs qui ont moins aimé que la moyenne, 4 évènements
 select utilisateur
@@ -144,6 +155,16 @@ from (
 ) t
 where rank = 1;
 
+-- Les lieux n'ayant pas accueilli d'évènement depuis plus d'un mois
+select l.id, l.nom
+from lieu l
+where not exists (
+  select 1
+  from evenement e
+  where age(e.date_rdv) <= interval '1 month'
+  and e.lieu_rdv = l.id
+);
+
 -- Pour chaque mois de 2025, l'utilisateur le plus nopé
 with nb_nopes as (
   select destination, extract(month from date_avis) as mois, count(*) as nopes
@@ -155,3 +176,42 @@ select *
 from nb_nopes n1
 where nopes = (select max(nopes) from nb_nopes n2 where n1.mois = n2.mois)
 order by mois;
+
+-- Le nombre d'utilisateur de la plateforme, mois par mois depuis de 1/1/25
+select
+  annee, mois,
+  sum(cpt) over (order by annee, mois)
+    + (select count(*) from utilisateur where inscription < date '2025-01-01') as nb_util
+from (
+  select
+    extract(year from inscription) as annee,
+    extract(month from inscription) as mois,
+    count(*) as cpt
+  from utilisateur
+  where inscription >= date '2025-01-01'
+  group by annee, mois
+) t
+order by annee, mois;
+
+-- Les tags les plus utilisés
+select tag, count(*) as cpt
+from (
+  select tag from tag_utilisateur
+  union
+  select tag from tag_lieu
+  union
+  select tag from tag_evenement
+) t
+group by tag
+order by cpt;
+
+-- Les organisateurs les plus populaires, classés par nombre d'utilisateur ayant
+-- assisté aux évènements qu'ils sont organisé et n'ayant pas laissé de mauvaise
+-- note
+select rank() over (order by count(*)) as classement, organisateur
+from
+  evenement
+  join presence on evenement = id
+where note is null or note >= 5
+group by organisateur
+order by classement;
