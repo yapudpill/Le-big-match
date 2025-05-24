@@ -33,19 +33,10 @@ from utilisateur u;
 
 --0.5 * score age + 0.125 * score taille + 0.125 * score poids + 0.125 * score cheveux + 0.125 * score yeux
 
---score age -> score_ecart (notre_age - age_recommandation,5)
 --score taille -> score_ecart (notre_taille - taille_recommandation,20)
 --score poids -> score_ecart (notre_poids - poids_recommandation,20)
 
- with prefs as (
-    select *
-    from preference
-    where chercheur = :'util'
-), autres as (
-    select *
-    from description
-    where id <> :'util'
-), compatibilite as (
+ with compatibilite as (
   select *
   from util_desc u1, util_desc u2
   where
@@ -56,7 +47,8 @@ from utilisateur u;
 select
     a.id,
     max(
-        coalesce(0.5   * (extract(year from age(naissance)) between age_min and age_max)::int, 0) +
+        coalesce(0.5   * (extract(year from age(naissance))
+          between coalesce(age_min,0) and coalesce(age_max,100))::int, 0) +
         coalesce(0.125 * score_ecart((a.taille - p.taille), 10), 0) +
         coalesce(0.125 * score_ecart((a.poids - p.poids), 10), 0) +
         coalesce(0.125 * (a.couleur_cheveux = p.couleur_cheveux)::int, 0) +
@@ -69,7 +61,19 @@ where u.id = a.id
 group by a.id;
 
 
-
+-- Scores d'évènements
+select u.id, (
+  with E1 as (
+    select evenement from presence p where p.utilisateur = :'util'
+  ), E2 as (
+    select evenement from presence p where p.utilisateur = u.id
+  )
+  select
+    (select count(*) from ((select *  from E1) intersect (select * from E2)) t) /
+    greatest((select count(*) from ((select *  from E1) union (select * from E2)) t), 1)
+    as score
+)
+from utilisateur u;
 
 
 \unset util

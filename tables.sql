@@ -89,7 +89,7 @@ create table preference (
     age_max         int check (age_max >= age_min)
 );
 
--- Contrainte externe : un avis n'est modifiable que ssi l'utilisateur est abonné
+-- Contrainte externe : un avis n'est modifiable ssi l'utilisateur est abonné
 create table avis (
     source      text references utilisateur(id),
     destination text references utilisateur(id),
