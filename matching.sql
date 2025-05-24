@@ -56,7 +56,7 @@ from utilisateur u;
 select
     a.id,
     max(
-        coalesce(0.5   * (extract(year from age(naissance)) between age_min and age_max)::int, 5), 0) +
+        coalesce(0.5   * (extract(year from age(naissance)) between age_min and age_max)::int, 0) +
         coalesce(0.125 * score_ecart((a.taille - p.taille), 10), 0) +
         coalesce(0.125 * score_ecart((a.poids - p.poids), 10), 0) +
         coalesce(0.125 * (a.couleur_cheveux = p.couleur_cheveux)::int, 0) +
