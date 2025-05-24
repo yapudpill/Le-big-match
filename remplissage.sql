@@ -100,3 +100,21 @@ insert into avis (source, destination, type_avis, date_avis)
     from tmp_avis;
 
 drop table tmp_avis;
+
+
+
+create temporary table tmp_preference (
+    chercheur text,
+    couleur_cheveux text,
+    couleur_yeux text,
+    poids int,
+    taille int,
+    age int
+);
+
+\copy tmp_preference from 'data/preference.csv' with (format csv, header true)
+insert into preference (chercheur,couleur_cheveux,couleur_yeux,poids,taille,age)
+    select chercheur,couleur_cheveux,couleur_yeux,poids,taille,age
+    from tmp_preference;
+
+drop table tmp_preference;

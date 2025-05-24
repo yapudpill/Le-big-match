@@ -37,28 +37,36 @@ from utilisateur u;
 --score taille -> score_ecart (notre_taille - taille_recommandation,20)
 --score poids -> score_ecart (notre_poids - poids_recommandation,20)
 
-
-with prefs as (
+ with prefs as (
     select *
-    from cherche
+    from preference
     where chercheur = :'util'
 ), autres as (
     select *
     from description
     where id <> :'util'
+), compatibilite as (
+  select *
+  from util_desc u1, util_desc u2
+  where
+  u1.id = :'util' and u1.id <> u2.id
+    and (u1.pref is null or u1.pref::text in ('tout', u2.genre::text))
+    and (u2.pref is null or u2.pref::text in ('tout', u1.genre::text))
 )
 select
-    a.id,max(
-        0.5   * score_ecart((((current_date - u.naissance) / 365.25)::int - p.age), 5) +
-        0.125 * score_ecart((a.taille - p.taille), 20) +
-        0.125 * score_ecart((a.poids - p.poids), 20) +
-        0.125 * case when a.couleur_cheveux = p.couleur_cheveux then 1 else 0 end +
-        0.125 * case when a.couleur_yeux = p.couleur_yeux then 1 else 0 end)
-     as score
-from autres a, utilisateur u, prefs p
+    a.id,
+    max(
+        coalesce(0.5   * (extract(year from age(naissance)) between age_min and age_max)::int, 5), 0) +
+        coalesce(0.125 * score_ecart((a.taille - p.taille), 10), 0) +
+        coalesce(0.125 * score_ecart((a.poids - p.poids), 10), 0) +
+        coalesce(0.125 * (a.couleur_cheveux = p.couleur_cheveux)::int, 0) +
+        coalesce(0.125 * (a.couleur_yeux = p.couleur_yeux)::int, 0)
+    ) as score
+from  (select * from description where id <> :'util') a,
+      compatibilite u,
+      (select * from preference where chercheur = :'util') p
 where u.id = a.id
 group by a.id;
-
 
 
 

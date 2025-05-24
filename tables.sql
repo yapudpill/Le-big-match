@@ -3,7 +3,7 @@ drop view if exists util_desc;
 drop table if exists
     region, departement, ville,
     lieu, tag_lieu,
-    utilisateur, description, cherche, avis, tag_utilisateur, tag_utilisateur,
+    utilisateur, description, preference, avis, tag_utilisateur, tag_utilisateur,
     evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence, tag_evenement;
 drop type if exists genre_t, pref_t, avis_t, reponse_t;
 
@@ -78,14 +78,15 @@ create table description (
 create view util_desc as
     select * from utilisateur left join description using (id);
 
-create table cherche (
+create table preference (
     id              serial primary key,
     chercheur       text not null references utilisateur(id),
     couleur_cheveux text,
     couleur_yeux    text,
     poids           int check (poids > 0),
     taille          int check (taille > 0),
-    age             int check (age >= 18)
+    age_min         int check (age_min >= 18)
+    age_max         int check (age_max >= age_min)
 );
 
 -- Contrainte externe : un avis n'est modifiable que ssi l'utilisateur est abonné

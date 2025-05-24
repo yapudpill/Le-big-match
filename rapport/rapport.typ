@@ -12,3 +12,5 @@
 = Schéma relationnel
 
 = Algorithme de matching
+
+#include "matching.typ"
