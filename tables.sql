@@ -85,7 +85,7 @@ create table preference (
     couleur_yeux    text,
     poids           int check (poids > 0),
     taille          int check (taille > 0),
-    age_min         int check (age_min >= 18)
+    age_min         int check (age_min >= 18),
     age_max         int check (age_max >= age_min)
 );
 
