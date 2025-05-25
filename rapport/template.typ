@@ -42,6 +42,7 @@
   set page(numbering: "1")
   set text(lang: "fr")
   set heading(numbering: "I - 1 - a.")
+  set par(justify: true)
   show heading: accent-text
   show link: accent-text
   show ref: accent-text

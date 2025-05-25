@@ -2,7 +2,7 @@
 #show: template.with(
   title: "Projet de Bases de données",
   subtitle: "Le Big Match",
-  authors: ("Marc Robin", "Anthony Fernandes"),
+  authors: ("Anthony Fernandes", "Marc Robin"),
 )
 
 = Modélisation ER
@@ -11,6 +11,12 @@
 
 = Schéma relationnel
 
+#include "schema.typ"
+
 = Algorithme de matching
 
 #include "matching.typ"
+
+= Limitations
+
+#include "limitations.typ"
