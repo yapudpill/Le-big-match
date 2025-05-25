@@ -3,7 +3,7 @@ drop view if exists util_desc, match_eff;
 drop table if exists
   region, departement, ville,
   lieu, tag_lieu,
-  utilisateur, description, preference, avis, tag_utilisateur, tag_utilisateur,
+  utilisateur, description, preference, avis, tag_utilisateur,
   evenement, evenement_futur, evenement_termine, evenement_annule, reponse, presence, tag_evenement;
 drop type if exists genre_t, pref_t, avis_t, reponse_t;
 
@@ -46,8 +46,8 @@ create table lieu (
 create table tag_lieu (
   lieu   text references lieu(id),
   tag    text,
-  source text not null,
-  primary key (lieu, tag)
+  source text,
+  primary key (lieu, tag, source)
 );
 
 -- UTILISATEURS --
@@ -112,8 +112,8 @@ create view match_eff as
 create table tag_utilisateur (
   utilisateur text references utilisateur(id),
   tag         text,
-  source      text not null,
-  primary key (utilisateur, tag)
+  source      text,
+  primary key (utilisateur, tag, source)
 );
 
 -- ÉVÈNEMENTS --
@@ -167,6 +167,6 @@ create table presence (
 create table tag_evenement (
   evenement int references evenement(id),
   tag       text,
-  source    text not null,
-  primary key (evenement, tag)
+  source    text,
+  primary key (evenement, tag, source)
 );
