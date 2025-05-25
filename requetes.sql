@@ -20,7 +20,7 @@ from
   and (u1.pref is null or u1.pref::text in ('tout', u2.genre::text))
   and (u2.pref is null or u2.pref::text in ('tout', u1.genre::text));
 
--- Les matchs effectifs
+-- Les matchs effectifs (définition de la vue match_eff)
 select source, destination
 from avis
 where type_avis = 'like'
@@ -215,3 +215,17 @@ from
 where note is null or note >= 5
 group by organisateur
 order by classement;
+
+-- Vérification de la cohérence des tables d'évènement. Cette requête renvoie
+-- la liste des évènements pour lesquels il y a une incohérence dans leur
+-- appartenance aux tables evenement_*
+select *
+from
+  evenement e
+  left join evenement_futur f on f.id = e.id
+  left join evenement_termine t on t.id = e.id
+  left join evenement_annule a on a.id = e.id
+where
+  (f.id is not null)::int + (t.id is not null)::int + (a.id is not null)::int <> 1
+  or (t.id is not null and e.date_rdv >= current_date)
+  or (f.id is not null and e.date_rdv < current_date);
