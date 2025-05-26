@@ -229,3 +229,24 @@ where
   (f.id is not null)::int + (t.id is not null)::int + (a.id is not null)::int <> 1
   or (t.id is not null and e.date_rdv >= current_date)
   or (f.id is not null and e.date_rdv < current_date);
+
+-- La prochaine disponibilité d'un lieu donné après le 01/09/2025
+-- remplacer la date par current_date pour avoir la prochaine disponibilité à
+-- partir de maintenant
+
+\set l 'un_lieu'
+
+with recursive occupe (d) as (
+  select date '2025-01-09'
+  union
+  select d + 1
+  from
+    evenement
+    join lieu on evenement.lieu_rdv = lieu.id
+    join occupe on evenement.date_rdv::date = occupe.d + 1
+  where lieu.id = :'l'
+)
+select max(d) + 1
+from occupe;
+
+\unset l
