@@ -2,3 +2,4 @@ id,source,nom,organisateur,date_rdv,lieu_rdv,description,prix,nb_places
 1,"lbm","Révisons ISF6","fernanda","2025-09-01 8:00","UP7","Rdv dans la salle 2015",0,30
 2,"lbm","Révisons fcts holo","robinm","2025-09-02 8:00","UP7","Rdv dans la salle 2015",0,30
 3,"lbm","Révisons BD6","fernanda","2025-09-03 8:00","UP7","Rdv dans la salle 2015",0,30
+4,"lbm","Soirée fin licence","fernanda","2025-09-23","UP7",,0,20

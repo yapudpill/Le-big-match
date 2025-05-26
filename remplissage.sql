@@ -70,6 +70,19 @@ insert into lieu(id, nom, adresse, ville, description, ouverture, fermeture, typ
 
 drop table tmp_lieu;
 
+create temporary table tmp_tag_l (
+  lieu text,
+  tag text,
+  source text
+);
+
+\copy tmp_tag_l from 'data/tag_lieu.csv' with (format csv, header true)
+insert into tag_lieu (lieu, tag, source)
+  select distinct lieu, tag, source
+  from tmp_tag_l;
+
+drop table tmp_tag_l;
+
 -- UTILISATEURS --
 create temporary table tmp_util (
   id text,
@@ -169,7 +182,7 @@ with ins as (
     select id, source, nom, organisateur, date_rdv, lieu_rdv, description, prix, nb_places
     from tmp_ev
   returning *
-);
+)
 select setval('preference_id_seq', (select count(*) from ins), false);
 
 drop table tmp_ev;
@@ -200,3 +213,40 @@ insert into reponse (utilisateur, evenement, reponse)
 
 drop table tmp_rep;
 drop table tmp_fut;
+
+create temporary table tmp_ter (
+  id int
+);
+
+\copy tmp_ter from 'data/termine.csv' with (format csv, header true)
+insert into evenement_termine (id)
+  select id
+  from tmp_ter;
+
+drop table tmp_ter;
+
+create temporary table tmp_pres (
+  utilisateur text,
+  evenement int,
+  note int
+);
+
+\copy tmp_pres from 'data/presence.csv' with (format csv, header true)
+insert into presence (utilisateur, evenement, note)
+  select utilisateur, evenement, note
+  from tmp_pres;
+
+drop table tmp_pres;
+
+create temporary table tmp_tag_e (
+  evenement int,
+  tag text,
+  source text
+);
+
+\copy tmp_tag_e from 'data/tag_evenement.csv' with (format csv, header true)
+insert into tag_evenement (evenement, tag, source)
+  select distinct evenement, tag, source
+  from tmp_tag_e;
+
+drop table tmp_tag_e;

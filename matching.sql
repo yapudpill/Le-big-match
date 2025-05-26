@@ -80,6 +80,10 @@ score_preferences as (
 -- On assemble tous les scores
 select
   id,
+  round(score_p, 3),
+  round(score_e, 3),
+  round(score_t, 3),
+  round(score_prox, 3),
   round(0.4 * score_p + 0.3 * score_e + 0.2 * score_t + 0.1 * score_prox, 3) as score
 from
   score_tags

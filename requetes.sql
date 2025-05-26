@@ -193,7 +193,7 @@ from (
 ) t
 order by annee, mois;
 
--- Les tags les plus utilisés
+-- Le top 10 des tags les plus utilisés
 select tag, count(*) as cpt
 from (
   select tag from tag_utilisateur
@@ -203,7 +203,8 @@ from (
   select tag from tag_evenement
 ) t
 group by tag
-order by cpt;
+order by cpt
+limit 10;
 
 -- Les organisateurs les plus populaires, classés par nombre d'utilisateur ayant
 -- assisté aux évènements qu'ils sont organisé et n'ayant pas laissé de mauvaise
