@@ -51,6 +51,25 @@ insert into ville (code, nom, departement)
 
 drop table tmp_ville;
 
+-- LIEUX --
+create temporary table tmp_lieu (
+  id text,
+  nom text,
+  adresse text,
+  ville char(5),
+  description text,
+  ouverture time,
+  fermeture time,
+  type_lieu text
+);
+
+\copy tmp_lieu from 'data/lieu.csv' with (format csv, header true)
+insert into lieu(id, nom, adresse, ville, description, ouverture, fermeture, type_lieu)
+  select id, nom, adresse, ville, description, ouverture, fermeture, type_lieu
+  from tmp_lieu;
+
+drop table tmp_lieu;
+
 -- UTILISATEURS --
 create temporary table tmp_util (
   id text,
@@ -130,3 +149,54 @@ insert into tag_utilisateur (utilisateur, tag, source)
   from tmp_tag_u;
 
 drop table tmp_tag_u;
+
+-- ÉVÈNEMENTS --
+create temporary table tmp_ev (
+  id int,
+  source text,
+  nom text,
+  organisateur text,
+  date_rdv timestamp,
+  lieu_rdv text,
+  description text,
+  prix int,
+  nb_places int
+);
+
+\copy tmp_ev from 'data/evenement.csv' with (format csv, header true)
+with ins as (
+  insert into evenement (id, source, nom, organisateur, date_rdv, lieu_rdv, description, prix, nb_places)
+    select id, source, nom, organisateur, date_rdv, lieu_rdv, description, prix, nb_places
+    from tmp_ev
+  returning *
+);
+select setval('preference_id_seq', (select count(*) from ins), false);
+
+drop table tmp_ev;
+
+create temporary table tmp_rep (
+  utilisateur text,
+  evenement int,
+  reponse reponse_t
+);
+
+create temporary table tmp_fut (
+  id int
+);
+
+\copy tmp_rep from 'data/reponse.csv' with (format csv, header true)
+\copy tmp_fut from 'data/futur.csv' with (format csv, header true)
+
+insert into evenement_futur (id, places_restantes)
+  select
+    tmp_fut.id,
+    (select evenement.nb_places from evenement where evenement.id = tmp_fut.id)
+    - (select count(*) from tmp_rep where tmp_rep.evenement = tmp_fut.id and tmp_rep.reponse = 'participe')
+  from tmp_fut;
+
+insert into reponse (utilisateur, evenement, reponse)
+  select utilisateur, evenement, reponse
+  from tmp_rep;
+
+drop table tmp_rep;
+drop table tmp_fut;

@@ -234,10 +234,10 @@ where
 -- remplacer la date par current_date pour avoir la prochaine disponibilité à
 -- partir de maintenant
 
-\set l 'un_lieu'
+\set l 'UP7'
 
 with recursive occupe (d) as (
-  select date '2025-01-09'
+  select date '2025-09-01'
   union
   select d + 1
   from
