@@ -2,6 +2,8 @@
 
 *par Anthony Fernandes et Marc Robin*
 
+Le sujet de ce projet est dans le fichier [Projet_LeBigMatch.pdf](Projet_LeBigMatch.pdf)
+
 ## Utilisation
 
 Pour charger la base de données, executez successivement les fichiers
