@@ -3,6 +3,7 @@
 *par Anthony Fernandes et Marc Robin*
 
 Le sujet de ce projet est dans le fichier [Projet_LeBigMatch.pdf](Projet_LeBigMatch.pdf)
+et le rapport se trouve dans [rapport.pdf](rapport.pdf).
 
 ## Utilisation
 
